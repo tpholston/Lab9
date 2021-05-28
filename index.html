@@ -24,6 +24,13 @@
       width: 240px;
     }
   </style>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "91b31b0780594babbbf13f7a2d76efc5"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
 </head>
 <body>
   <fieldset>
@@ -53,20 +60,108 @@
     <button>End Timer</button>
     <button>Console Trace</button>
     <button>Trigger a Global Error</button>
+    <button>This Will Throw an Error</button>
+    <button>Throw a Custom Error</button>
   </section>
 
   <script>
+    class TylersError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "TylersError";
+      }
+    }
+
     let calculateBtn = document.querySelector('#calculate');
     calculateBtn.addEventListener('click', () => {
       let output = document.querySelector('output');
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      try {
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      }
+      catch (err) {
+        if(isNaN(firstNum) || isNaN(secondNum)) {
+          output.innerHTML = 0;
+        } else {
+          if(firstNum === '') {
+            document.querySelector('#first-num').value = 0;
+            firstNum = 0;
+          }
+          if (secondNum === '') {
+            document.querySelector('#second-num').value = 0;
+            secondNum = 0;
+          }
+          output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+        }
+      }
+      finally {
+        console.log('successfully output: ', output.innerHTML);
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
     // TODO - Make buttons functional
+    errorBtns[0].addEventListener('click', () => {
+      console.log(document.querySelector('output').innerHTML);
+    });
+
+    errorBtns[1].addEventListener('click', () => {
+      console.error(document.querySelector('output').innerHTML);
+    });
+
+    errorBtns[2].addEventListener('click', () => {
+      console.dir(document);
+    });
+
+    errorBtns[3].addEventListener('click', () => {
+      console.dirxml(document.querySelector('fieldset'));
+    });
+
+    errorBtns[4].addEventListener('click', () => {
+      console.group(document.querySelector('output').innerHTML);
+    });
+
+    errorBtns[5].addEventListener('click', () => {
+      console.groupEnd(document.querySelector('output').innerHTML);
+    });
+
+    errorBtns[6].addEventListener('click', () => {
+      console.table({
+        firstNum: document.querySelector('#first-num').value, 
+        secondNum: document.querySelector('#second-num').value,
+        output: document.querySelector('output').innerHTML
+      });
+    });
+
+    errorBtns[7].addEventListener('click', () => {
+      console.time();
+    });
+
+    errorBtns[8].addEventListener('click', () => {
+      console.timeEnd();
+    });
+
+    errorBtns[9].addEventListener('click', () => {
+      console.trace(document.querySelector('output').innerHTML);
+    });
+
+    errorBtns[10].addEventListener('click', () => {
+      throw new ReferenceError("oh no you triggered an error");
+    });
+
+    errorBtns[11].addEventListener('click', () => {
+      throw new SyntaxError("your syntax is weird");
+    });
+
+    errorBtns[12].addEventListener('click', () => {
+      throw new TylersError("this is a custom error");
+    });
+
+    window.onerror = function (message) {
+      console.log("onerror called: ", message);
+    };
   </script>
 </body>
 </html>
